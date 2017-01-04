@@ -54,33 +54,33 @@ namespace WallpaperSorter
             this.secondayTagListBox.ItemsSource = secondaryTags;
             if (previewImages != null)
             {
-                if (previewImages.Count > 16)
-                {
-                    previewImages.RemoveRange(16, previewImages.Count - 16);
-                }
                 ImagePreviews = new List<PreviewImage>();
+                int i = 0;
                 foreach (FileInfo previewImage in previewImages)
                 {
-                    previewImage.Refresh();
-                    if (previewImage.Exists)
-                    {
-                        BitmapImage image = new BitmapImage();
-                        image.BeginInit();
-                        image.UriSource = new Uri(previewImage.FullName);
-                        image.CacheOption = BitmapCacheOption.OnLoad;
-                        image.EndInit();
-                        image.Freeze();
+                    if (i == 16)
+                        break;
+                    try {
+                        previewImage.Refresh();
+                        if (previewImage.Exists) {
+                            BitmapImage image = new BitmapImage();
+                            image.BeginInit();
+                            image.UriSource = new Uri(previewImage.FullName);
+                            image.CacheOption = BitmapCacheOption.OnLoad;
+                            image.EndInit();
+                            image.Freeze();
 
-                        if(image.Width>2000)
-                        {
-                            image = CreateThumbnail(image);
+                            if (image.Width > 2000) {
+                                image = CreateThumbnail(image);
+                            }
+
+                            PreviewImage img = new PreviewImage();
+                            img.Image = image;
+                            img.Name = previewImage.Name;
+                            this.ImagePreviews.Add(img);
                         }
-
-                        PreviewImage img = new PreviewImage();
-                        img.Image = image;
-                        img.Name = previewImage.Name;
-                        this.ImagePreviews.Add(img);
-                    }
+                        i++;
+                    } catch { }
                 }
             }
 

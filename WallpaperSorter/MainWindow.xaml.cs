@@ -91,7 +91,7 @@ namespace WallpaperSorter
 
         private void process()
         {
-            Dictionary<string, List<String>> directoriesNamesAndArtists = new Dictionary<string, List<string>>();
+            Dictionary<string, Dictionary<String, DirectoryInfo>> directoriesNamesAndArtists = new Dictionary<string, Dictionary<String, DirectoryInfo>>();
             List<string> skippedArtists = new List<string>();
 
             DirectoryInfo destinationDir = new DirectoryInfo(Properties.Settings.Default.DesinationDir);
@@ -101,17 +101,16 @@ namespace WallpaperSorter
             foreach (DirectoryInfo categoryDir in categoryDirs)
             {
                 string category = categoryDir.Name.ToLower();
-                directoriesNamesAndArtists.Add(category, new List<string>());
+                directoriesNamesAndArtists.Add(category, new Dictionary<String, DirectoryInfo>());
 
                 DirectoryInfo[] artistDirs = categoryDir.GetDirectories();
                 foreach (DirectoryInfo artistDir in artistDirs)
                 {
-                    if(artistDir.Name=="skribblix")
-                    {
-                        Console.Out.WriteLine();
-                    }
-                    directoriesNamesAndArtists[category].Add(artistDir.Name.ToLower());
-                    processArtistDir(artistDir);
+                    String name = artistDir.Name.ToLower();
+                    name = name.Replace(categoryDir.Name.ToLower(), String.Empty).Trim();
+
+                    directoriesNamesAndArtists[category].Add(name,artistDir);
+                    processArtistDir(name, artistDir);
                 }
             }
 
@@ -151,7 +150,7 @@ namespace WallpaperSorter
 
                 foreach(String category in directoriesNamesAndArtists.Keys)
                 {
-                    if(directoriesNamesAndArtists[category].Contains(artistTag))
+                    if(directoriesNamesAndArtists[category].ContainsKey(artistTag))
                     {
                         artistCategory = category;
                         break;
@@ -176,17 +175,17 @@ namespace WallpaperSorter
                 }
 
                 if (!directoriesNamesAndArtists.ContainsKey(artistCategory))
-                    directoriesNamesAndArtists.Add(artistCategory, new List<string>());
+                    directoriesNamesAndArtists.Add(artistCategory, new Dictionary<string, DirectoryInfo>());
 
-                if (!directoriesNamesAndArtists[artistCategory].Contains(artistTag))
-                    directoriesNamesAndArtists[artistCategory].Add(artistTag);
-
-                String newArtistDir = System.IO.Path.Combine(destinationDir.FullName, System.IO.Path.Combine(artistCategory, artistTag));
+                String newArtistDir = System.IO.Path.Combine(destinationDir.FullName, System.IO.Path.Combine(artistCategory, artistCategory + " " + artistTag));
                 DirectoryInfo newArtistDirInfo = new DirectoryInfo(newArtistDir);
                 if (!newArtistDirInfo.Exists)
                     newArtistDirInfo.Create();
 
-                processArtistDir(newArtistDirInfo);
+                if (!directoriesNamesAndArtists[artistCategory].ContainsKey(artistTag))
+                    directoriesNamesAndArtists[artistCategory].Add(artistTag, newArtistDirInfo);
+
+                processArtistDir(artistTag, newArtistDirInfo);
             }
         }
 
@@ -221,9 +220,9 @@ namespace WallpaperSorter
             return output;
         }
 
-        private void processArtistDir(DirectoryInfo artistDir)
+        private void processArtistDir(String artist, DirectoryInfo artistDir)
         {
-            List<FileInfo> matchingFiles = getOtherArtistImages(artistDir.Name);
+            List<FileInfo> matchingFiles = getOtherArtistImages(artist);
 
             foreach (FileInfo f in matchingFiles)
             {
