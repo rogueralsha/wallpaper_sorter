@@ -106,11 +106,17 @@ namespace WallpaperSorter
                 DirectoryInfo[] artistDirs = categoryDir.GetDirectories();
                 foreach (DirectoryInfo artistDir in artistDirs)
                 {
-                    String name = artistDir.Name.ToLower();
-                    name = name.Replace(categoryDir.Name.ToLower(), String.Empty).Trim();
+                    try
+                    {
+                        String name = artistDir.Name.ToLower();
+                        name = name.Replace(categoryDir.Name.ToLower(), String.Empty).Trim();
 
-                    directoriesNamesAndArtists[category].Add(name,artistDir);
-                    processArtistDir(name, artistDir);
+                        directoriesNamesAndArtists[category].Add(name, artistDir);
+                        processArtistDir(name, artistDir);
+                    } catch(Exception e)
+                    {
+                        throw e;
+                    }
                 }
             }
 
